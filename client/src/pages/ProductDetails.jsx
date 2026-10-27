@@ -80,6 +80,7 @@ export default function ProductDetails() {
               {message} <Link to="/cart">View bag</Link>
             </p>
           )}
+
           <div className="detail-perks">
             <p>
               01 <span>Thoughtful, everyday design</span>
