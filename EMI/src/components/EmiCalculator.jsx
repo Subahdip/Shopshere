@@ -1,31 +1,42 @@
-
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Calculator,
   Check,
   ChevronRight,
-  IndianRupee,
 } from "lucide-react";
 
 const TENURES = [3, 6, 9, 12, 18, 24];
+
+// Annual interest rate (%) for each tenure. Edit these to change the rates.
+const RATE_BY_TENURE = {
+  3: 11,
+  6: 12,
+  9: 13,
+  12: 14,
+  18: 15,
+  24: 16,
+};
+
+const MIN_DOWN_PERCENT = 5;
+const MAX_DOWN_PERCENT = 30;
 
 export default function EmiCalculator({
   product,
   onContinue,
 }) {
   const [tenure, setTenure] = useState(6);
-  const [annualRate, setAnnualRate] = useState(12);
+  const [downPercent, setDownPercent] = useState(MIN_DOWN_PERCENT);
 
-  const [emiDetails, setEmiDetails] = useState(null);
+  const price = Number(product?.price);
+  const annualRate = RATE_BY_TENURE[tenure];
 
-  const principal = Number(product?.price);
-
-  useEffect(() => {
-    if (!Number.isFinite(principal) || principal <= 0) {
-      setEmiDetails(null);
-      return;
+  const emiDetails = useMemo(() => {
+    if (!Number.isFinite(price) || price <= 0) {
+      return null;
     }
 
+    const downPayment = Math.round((price * downPercent) / 100);
+    const principal = price - downPayment;
     const months = tenure;
     const monthlyRate = annualRate / 12 / 100;
 
@@ -38,24 +49,33 @@ export default function EmiCalculator({
             Math.pow(1 + monthlyRate, months)) /
           (Math.pow(1 + monthlyRate, months) - 1);
 
-    const totalPayable = monthlyEMI * months;
-    const totalInterest = totalPayable - principal;
+    const totalEmi = monthlyEMI * months;
+    const totalInterest = totalEmi - principal;
 
-    setEmiDetails({
+    return {
+      productPrice: price,
+      downPercent,
+      downPayment,
       principal,
       tenure: months,
       annualRate,
       monthlyEMI,
       totalInterest,
-      totalPayable,
-    });
-  }, [principal, tenure, annualRate]);
+      // Down payment is paid now, EMIs are paid later.
+      totalPayable: downPayment + totalEmi,
+    };
+  }, [price, tenure, downPercent, annualRate]);
 
   const formatCurrency = (amount) =>
     `₹${amount.toLocaleString("en-IN", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
+
+  const sliderFill =
+    ((downPercent - MIN_DOWN_PERCENT) /
+      (MAX_DOWN_PERCENT - MIN_DOWN_PERCENT)) *
+    100;
 
   return (
     <section className="calculator-card" id="emi-calculator">
@@ -71,13 +91,43 @@ export default function EmiCalculator({
       </div>
 
       <p className="muted">
-        Select a tenure that works for your budget.
+        Choose your down payment and a tenure that works for your
+        budget.
       </p>
+
+      {/* Down payment slider */}
+      <div className="interest-section down-section">
+        <div className="field-label">
+          <label htmlFor="down-payment">Down payment</label>
+          <strong>
+            {downPercent}%
+            {emiDetails && ` · ${formatCurrency(emiDetails.downPayment)}`}
+          </strong>
+        </div>
+
+        <input
+          id="down-payment"
+          type="range"
+          min={MIN_DOWN_PERCENT}
+          max={MAX_DOWN_PERCENT}
+          step="1"
+          value={downPercent}
+          style={{ "--fill": `${sliderFill}%` }}
+          onChange={(event) =>
+            setDownPercent(Number(event.target.value))
+          }
+        />
+
+        <div className="range-labels">
+          <span>{MIN_DOWN_PERCENT}%</span>
+          <span>{MAX_DOWN_PERCENT}%</span>
+        </div>
+      </div>
 
       {/* Tenure selection */}
       <div className="field-label">
         <span>Choose your tenure</span>
-        <span className="muted">Monthly installments</span>
+        <span className="muted">Interest rate changes with tenure</span>
       </div>
 
       <div className="tenure-grid">
@@ -97,36 +147,11 @@ export default function EmiCalculator({
 
             <strong>{months}</strong>
             <span>months</span>
+            <small className="tenure-rate">
+              {RATE_BY_TENURE[months]}% p.a.
+            </small>
           </button>
         ))}
-      </div>
-
-      {/* Interest rate slider */}
-      <div className="interest-section">
-        <div className="field-label">
-          <label htmlFor="annual-rate">
-            Annual interest rate
-          </label>
-          <strong>{annualRate}%</strong>
-        </div>
-
-        <input
-          id="annual-rate"
-          type="range"
-          min="0"
-          max="24"
-          step="1"
-          value={annualRate}
-          onChange={(event) =>
-            setAnnualRate(Number(event.target.value))
-          }
-        />
-
-        <div className="range-labels">
-          <span>0%</span>
-          <span>12%</span>
-          <span>24%</span>
-        </div>
       </div>
 
       {/* EMI result */}
@@ -145,6 +170,18 @@ export default function EmiCalculator({
 
             <div className="result-row">
               <span>Product amount</span>
+              <strong>{formatCurrency(emiDetails.productPrice)}</strong>
+            </div>
+
+            <div className="result-row">
+              <span>
+                Down payment ({emiDetails.downPercent}%)
+              </span>
+              <strong>− {formatCurrency(emiDetails.downPayment)}</strong>
+            </div>
+
+            <div className="result-row">
+              <span>Amount financed</span>
               <strong>{formatCurrency(emiDetails.principal)}</strong>
             </div>
 

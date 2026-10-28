@@ -1,6 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap');
 :root {
   font-family: 'DM Sans', sans-serif;
   color: #25251f;
@@ -617,3 +616,156 @@ button:disabled {
     height: 72px;
   }
 }
+
+
+/* ===== EMI theme tweak: keeps the layout, changes the look ===== */
+:root {
+  font-family: 'Manrope', 'DM Sans', sans-serif;
+  color: #15213b;
+  background: #eef2f8;
+}
+
+body { background: #eef2f8; }
+
+.announcement {
+  background: linear-gradient(90deg, #1f2a6b, #3b4cca);
+  color: #fff;
+  letter-spacing: 1.6px;
+}
+
+.navbar {
+  background: #fff;
+  border-bottom: 1px solid #dde4f0;
+}
+
+.brand {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #15213b;
+}
+.brand span { color: #3b4cca; }
+
+.nav-center a { color: #5b6a86; font-weight: 600; }
+.nav-center a:hover { color: #3b4cca; }
+
+.back-button { border-color: #cfd8ea; }
+.back-button:hover { background: #eef2f8; }
+
+.emi-bag {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #e6ebff;
+  color: #3b4cca;
+  font-weight: 700;
+}
+
+.eyebrow { color: #3b4cca; font-weight: 700; }
+
+.page-intro h1 {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  letter-spacing: -2px;
+}
+.page-intro h1 em {
+  font-style: normal;
+  color: #3b4cca;
+  font-weight: 800;
+}
+
+.muted { color: #6b7893; }
+
+/* cards */
+.product-card,
+.calculator-card,
+.status-card,
+.cart-summary-card {
+  background: #fff;
+  border: 1px solid #dde4f0;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(31, 42, 107, 0.06);
+}
+
+.product-image-wrap { background: #e9eefb; }
+
+.product-info h2,
+.section-heading h2 {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.product-price { color: #3b4cca; font-weight: 800; }
+.verified { color: #2e7d6b; }
+
+.heading-icon {
+  border: 0;
+  background: #e6ebff;
+  color: #3b4cca;
+}
+
+/* tenure buttons */
+.tenure-option {
+  border: 1px solid #d3dcef;
+  border-radius: 12px;
+  background: #f7f9fe;
+}
+.tenure-option:hover { border-color: #3b4cca; }
+.tenure-option.selected {
+  background: #3b4cca;
+  border-color: #3b4cca;
+  box-shadow: 0 6px 16px rgba(59, 76, 202, 0.35);
+}
+
+.interest-section input[type='range'] { accent-color: #3b4cca; }
+
+/* result box */
+.emi-result {
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #1f2a6b, #2f3fb5);
+  color: #fff;
+}
+.emi-result .eyebrow { color: #aebbff; }
+.emi-result .muted,
+.result-row span { color: #c7d0ff; }
+.result-row strong,
+.emi-result h2 { color: #fff; }
+.result-divider { background: rgba(255, 255, 255, 0.2); }
+.total-row { border-top: 1px solid rgba(255, 255, 255, 0.25); }
+.total-row span,
+.total-row strong { color: #fff; }
+
+.primary-button {
+  border-radius: 12px;
+  background: #3b4cca;
+  border-color: #3b4cca;
+  font-weight: 700;
+  font-size: 13px;
+}
+.primary-button:not(:disabled):hover { background: #2f3fb5; }
+
+.success-notice {
+  border-radius: 14px;
+  background: #e5f6f0;
+  border-color: #bfe6d9;
+  color: #1f5b49;
+}
+
+.page-footer span:first-child {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  color: #15213b;
+}
+
+/* cart summary block */
+.cart-summary-card { border-color: #dde4f0; }
+.emi-cart-item { border-bottom-color: #e8edf7; }
+.emi-cart-image img,
+.emi-image-placeholder { border-radius: 10px; }
+.emi-cart-grand-total { border-top-color: #dde4f0; }
+
+
+/* down payment slider + rate under each tenure */
+.down-section { margin: 0 0 28px; }
+.tenure-rate { font-size: 10px; opacity: 0.75; }

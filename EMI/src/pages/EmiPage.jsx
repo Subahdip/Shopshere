@@ -263,6 +263,12 @@ export default function EmiPage() {
               Tenure:{" "}
               <strong>{selectedPlan.tenure} months</strong>
             </p>
+                        <p>
+              Down payment ({selectedPlan.downPercent}%):{" "}
+              <strong>
+                ₹{formatCurrency(selectedPlan.downPayment)}
+              </strong>
+            </p>
 
             <p>
               Monthly EMI:{" "}
