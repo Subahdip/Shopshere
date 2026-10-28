@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   Truck,
 } from "lucide-react";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../components/context/CartContext";
 
 export default function Cart() {
   const { items, subtotal, updateQuantity, removeItem } = useCart();

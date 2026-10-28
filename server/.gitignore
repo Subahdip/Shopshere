@@ -4,21 +4,29 @@ jspm_packages/
 
 # Environment variables and secrets
 .env
+.env.*
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Optional npm cache directory
 .npm
 
-# Output/Build directories (Uncomment if you use build tools like TypeScript/Vite)
-# dist/
-# build/
+# Output/Build directories
+dist/
+build/
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

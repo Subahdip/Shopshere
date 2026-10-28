@@ -1,18 +1,55 @@
 # Dependencies
 node_modules/
 **/node_modules/
+.pnp
+.pnp.js
 
-# Build output
-client/dist/
-server/dist/
+# Build and production outputs
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+build/
+**/build/
+out/
+**/out/
 
-# Environment variables
+# Environment variables and secrets
 .env
 .env.*
+.env.local
+.env.*.local
+**/.env
+**/.env.*
+**/.env.local
+**/.env.*.local
 client/.env
 server/.env
+EMI/.env
 
 # Logs
+logs/
+**/logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Vite cache and temp files
+.vite/
+**/.vite/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+**/.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

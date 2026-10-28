@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../components/context/AuthContext";
 function AuthForm({ mode }) {
   const isRegister = mode === "register";
   const [name, setName] = useState("");

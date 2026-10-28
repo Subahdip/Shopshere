@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ShoppingBag } from "lucide-react";
 import api from "../services/api";
-import { useCart } from "../context/CartContext";
+import { useCart } from "../components/context/CartContext";
 export default function ProductDetails() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);

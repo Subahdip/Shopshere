@@ -1,7 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { ShoppingBag, UserRound, LogOut, LayoutDashboard } from "lucide-react";
-import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
+import { useCart } from "../components/context/CartContext";
+import { useAuth } from "../components/context/AuthContext";
 export default function Navbar() {
   const { count } = useCart();
   const { user, logout } = useAuth();
