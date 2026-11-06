@@ -11,6 +11,9 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+// Credit scores below this are not eligible for an EMI.
+export const MIN_CREDIT_SCORE = 650;
+
 export default function DetailsForm({
   initialData,
   onSave,
@@ -144,9 +147,18 @@ export default function DetailsForm({
           err = "Format: 4 letters, 0, 6 digits/letters (e.g. HDFC0001234)";
         }
         break;
+      case "bankName":
+        if (!strVal) {
+          err = "Bank name is required";
+        } else if (strVal.length < 2) {
+          err = "Enter a valid bank name";
+        }
+        break;
       case "creditScore":
         if (!val || Number(val) < 300 || Number(val) > 900) {
           err = "Credit score must be between 300 and 900";
+        } else if (Number(val) < MIN_CREDIT_SCORE) {
+          err = `Credit score must be ${MIN_CREDIT_SCORE} or higher to be eligible for an EMI`;
         }
         break;
       default:
@@ -169,6 +181,7 @@ export default function DetailsForm({
       "aadhar",
       "bankAccountNo",
       "bankIfsc",
+      "bankName",
       "creditScore",
     ];
 
@@ -198,13 +211,16 @@ export default function DetailsForm({
   };
 
   const getScoreRating = (score) => {
+    if (score < MIN_CREDIT_SCORE) {
+      return { label: `Not eligible for EMI (below ${MIN_CREDIT_SCORE})`, color: "#dc2626" };
+    }
     if (score >= 750) return { label: "Excellent (Eligible for 0% down)", color: "#059669" };
     if (score >= 680) return { label: "Very Good (Pre-Approved)", color: "#10b981" };
-    if (score >= 620) return { label: "Good (Standard Rates)", color: "#f59e0b" };
-    return { label: "Fair (Additional verification may apply)", color: "#ef4444" };
+    return { label: "Good (Standard Rates)", color: "#f59e0b" };
   };
 
   const scoreRating = getScoreRating(formData.creditScore);
+  const isIneligible = Number(formData.creditScore) < MIN_CREDIT_SCORE;
 
   return (
     <div className="details-form-container">
@@ -229,7 +245,7 @@ export default function DetailsForm({
 
           <div className="form-row-grid">
             <div className={`form-field ${errors.fullName && touched.fullName ? "field-error" : ""}`}>
-              <label htmlFor="fullName">Full Legal Name *</label>
+              <label htmlFor="fullName">Full Name *</label>
               <input
                 id="fullName"
                 name="fullName"
@@ -480,8 +496,8 @@ export default function DetailsForm({
               )}
             </div>
 
-            <div className="form-field">
-              <label htmlFor="bankName">Bank Name (Optional)</label>
+            <div className={`form-field ${errors.bankName && touched.bankName ? "field-error" : ""}`}>
+              <label htmlFor="bankName">Bank Name *</label>
               <input
                 id="bankName"
                 name="bankName"
@@ -489,7 +505,14 @@ export default function DetailsForm({
                 placeholder="e.g. HDFC Bank / ICICI / SBI"
                 value={formData.bankName}
                 onChange={handleChange}
+                onBlur={() => handleBlur("bankName")}
+                required
               />
+              {errors.bankName && touched.bankName && (
+                <span className="field-error-message">
+                  <AlertCircle size={13} /> {errors.bankName}
+                </span>
+              )}
             </div>
           </div>
 
@@ -546,6 +569,16 @@ export default function DetailsForm({
                 </button>
               ))}
             </div>
+
+            {isIneligible && (
+              <div className="not-eligible-banner" role="alert">
+                <AlertCircle size={16} />
+                <span>
+                  Your credit score is below {MIN_CREDIT_SCORE}, so you are not eligible for an EMI
+                  and cannot continue with this plan.
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -566,7 +599,7 @@ export default function DetailsForm({
           <button
             type="submit"
             className="primary-btn btn-lg submit-btn"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isIneligible}
           >
             {isSubmitting ? (
               <span>Saving details to database...</span>
