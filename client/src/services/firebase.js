@@ -1,3 +1,4 @@
+
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
@@ -8,15 +9,20 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Check Firebase configuration
+console.log("Firebase config diagnostic:", {
+  apiKeyLoaded: Boolean(firebaseConfig.apiKey),
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  appIdLoaded: Boolean(firebaseConfig.appId),
+});
+
+// Initialize Firebase correctly
 const app = getApps().length
   ? getApp()
-  : console.log("Firebase config diagnostic:", {
-      apiKeyLoaded: Boolean(firebaseConfig.apiKey),
-      apiKeyLength: firebaseConfig.apiKey?.length,
-      projectId: firebaseConfig.projectId,
-      authDomain: firebaseConfig.authDomain,
-    });
-initializeApp(firebaseConfig);
+  : initializeApp(firebaseConfig);
 
+// Initialize Firebase Authentication
 export const auth = getAuth(app);
+
 export default app;

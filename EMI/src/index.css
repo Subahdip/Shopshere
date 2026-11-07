@@ -2439,3 +2439,254 @@ body {
     width: 100%;
   }
 }
+
+
+/* =========================================
+   SHOPSPHERE EMI - NAVBAR FIX
+========================================= */
+
+.announcement {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background: linear-gradient(110deg, #202d70, #394dcc);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+  text-align: center;
+}
+
+.navbar {
+  width: 100%;
+  min-height: 108px;
+  padding: 18px 6%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  background: #fff;
+  border-bottom: 1px solid #e5e9f2;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Brand logo */
+.navbar .brand {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  text-decoration: none;
+  color: #14244a;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.navbar .brand span {
+  color: #4659e8;
+}
+
+/* Center navigation */
+.navbar .nav-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 38px;
+}
+
+.navbar .nav-center a,
+.navbar .nav-center button {
+  padding: 10px 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  color: #343b50;
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.25s ease;
+}
+
+.navbar .nav-center a::after,
+.navbar .nav-center button::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #4055df;
+  transition: width 0.25s ease;
+}
+
+.navbar .nav-center a:hover,
+.navbar .nav-center button:hover {
+  color: #4055df;
+}
+
+.navbar .nav-center a:hover::after,
+.navbar .nav-center button:hover::after {
+  width: 100%;
+}
+
+/* Right side actions */
+.navbar .nav-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+/* My Details button */
+.navbar .nav-right button:not(.back-button) {
+  font-family: inherit;
+}
+
+.navbar .nav-right button.back-button {
+  width: 49px;
+  height: 49px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dce2f0;
+  border-radius: 50%;
+  background: #fff;
+  color: #17233e;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.navbar .nav-right button.back-button:hover {
+  background: #f0f3ff;
+  border-color: #4055df;
+  color: #4055df;
+  transform: translateX(-3px);
+}
+
+/* EMI badge */
+.navbar .emi-bag {
+  min-width: 100px;
+  height: 49px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid #d9def0;
+  border-radius: 30px;
+  background: #edf0ff;
+  color: #3549d8;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.navbar .emi-bag:hover {
+  background: #dfe5ff;
+  transform: translateY(-2px);
+}
+
+.navbar .emi-bag svg {
+  width: 21px;
+  height: 21px;
+}
+
+/* =========================================
+   RESPONSIVE NAVBAR
+========================================= */
+
+@media (max-width: 900px) {
+  .navbar {
+    padding: 16px 4%;
+    gap: 18px;
+  }
+
+  .navbar .brand {
+    font-size: 30px;
+  }
+
+  .navbar .nav-center {
+    gap: 20px;
+  }
+
+  .navbar .nav-center a,
+  .navbar .nav-center button {
+    font-size: 13px;
+  }
+
+  .navbar .nav-right {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 650px) {
+  .announcement {
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 10px;
+  }
+
+  .navbar {
+    min-height: auto;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 16px 5%;
+  }
+
+  .navbar .brand {
+    font-size: 27px;
+  }
+
+  .navbar .nav-center {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 35px;
+    border-top: 1px solid #edf0f5;
+    padding-top: 12px;
+  }
+
+  .navbar .nav-right {
+    gap: 9px;
+  }
+
+  .navbar .nav-right button.back-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .navbar .emi-bag {
+    min-width: 70px;
+    height: 40px;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .navbar .brand {
+    font-size: 23px;
+  }
+
+  .navbar .nav-center {
+    gap: 20px;
+  }
+
+  .navbar .nav-right {
+    gap: 6px;
+  }
+}

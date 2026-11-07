@@ -10,7 +10,7 @@ import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
-import { Login, Register } from "./pages/AuthPages";
+import { Login, Register, AdminLogin } from "./pages/AuthPages";
 import { MyOrders, OrderConfirmation } from "./pages/Orders";
 import Admin from "./pages/Admin";
 
@@ -62,6 +62,7 @@ export default function App() {
 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
 
           <Route
             path="/orders"

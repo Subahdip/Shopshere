@@ -1,10 +1,29 @@
+
+import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../components/context/AuthContext";
-import React, { useState, useEffect } from "react";
+import { useAuth } from "./context/AuthContext";
+
 export default function ProtectedRoute({ children, admin = false }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
-  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
-  if (admin && user.role !== "admin") return <Navigate to="/" replace />;
+
+  if (loading) {
+    return <div className="auth-loading">Checking authentication...</div>;
+  }
+
+  if (!user) {
+    return (
+      <Navigate
+        to={admin ? "/admin/login" : "/login"}
+        state={{ from: location }}
+        replace
+      />
+    );
+  }
+
+  if (admin && user.role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 }

@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 
 import Navbar from "../components/Navbar.jsx";
@@ -7,23 +8,34 @@ import DetailsForm from "../components/DetailsForm.jsx";
 import ConfirmationPage from "../components/ConfirmationPage.jsx";
 import EmiSuccessView from "../components/EmiSuccessView.jsx";
 import MyDetailsModal from "../components/MyDetailsModal.jsx";
-import { getEmiProfile, saveEmiProfile, createEmiOrder } from "../services/api.js";
+
+import {
+  getEmiProfile,
+  saveEmiProfile,
+  createEmiOrder,
+} from "../services/api.js";
 
 export default function EmiPage() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [error, setError] = useState("");
-  const [currentView, setCurrentView] = useState("calculator"); // 'calculator' | 'details' | 'confirm' | 'success'
+
+  const [currentView, setCurrentView] = useState("calculator");
+  const [pendingScroll, setPendingScroll] = useState("");
+
   const [userProfile, setUserProfile] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   const [isSavingDetails, setIsSavingDetails] = useState(false);
   const [isConfirmingOrder, setIsConfirmingOrder] = useState(false);
+
   const [confirmedOrder, setConfirmedOrder] = useState(null);
 
-  // Load profile from database / local storage on mount
+  // Load the user's saved EMI profile.
   useEffect(() => {
     async function loadInitialProfile() {
       try {
         const profile = await getEmiProfile();
+
         if (profile) {
           setUserProfile(profile);
         }
@@ -31,6 +43,7 @@ export default function EmiPage() {
         console.warn("Could not load initial EMI profile:", err);
       }
     }
+
     loadInitialProfile();
   }, []);
 
@@ -93,7 +106,7 @@ export default function EmiPage() {
 
   const items = cartData.items;
 
-  // Match ShopSphere's shipping rule: Free for >= ₹2,500
+  // ShopSphere shipping rule: free shipping for orders >= ₹2,500.
   const subtotal = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -102,6 +115,7 @@ export default function EmiPage() {
   const shipping = subtotal === 0 || subtotal >= 2500 ? 0 : 99;
   const total = subtotal + shipping;
 
+  // Prepare the product/cart information for the EMI calculator.
   const calculatorProduct = useMemo(() => {
     if (items.length === 0) {
       return null;
@@ -109,6 +123,7 @@ export default function EmiPage() {
 
     if (items.length === 1) {
       const item = items[0];
+
       return {
         ...item,
         price: item.price * item.quantity + shipping,
@@ -130,9 +145,10 @@ export default function EmiPage() {
     };
   }, [items, shipping, total]);
 
-  // Check whether the user has already completed all essential verification details
+  // Check whether all required customer details are present.
   const hasFilledRequiredDetails = (profile) => {
     if (!profile) return false;
+
     const required = [
       "fullName",
       "email",
@@ -149,6 +165,7 @@ export default function EmiPage() {
     const allPresent = required.every(
       (key) => String(profile[key] || "").trim().length > 0
     );
+
     const validScore =
       profile.creditScore !== undefined &&
       profile.creditScore !== null &&
@@ -157,12 +174,7 @@ export default function EmiPage() {
     return allPresent && validScore;
   };
 
-  /**
-   * Called when user clicks "Continue with this plan"
-   * Check if details are already filled:
-   * - If YES: redirect to new confirmation page
-   * - If NO: redirect to details form step to fill details first
-   */
+  // Continue after selecting an EMI plan.
   function handleContinue(plan) {
     setSelectedPlan(plan);
     setError("");
@@ -176,17 +188,17 @@ export default function EmiPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // Save details to database & local cache
+  // Save customer KYC and bank details.
   async function handleSaveDetails(formData) {
     setIsSavingDetails(true);
     setError("");
 
     try {
       const saved = await saveEmiProfile(formData);
+
       setUserProfile(saved);
       setIsSavingDetails(false);
 
-      // Now that details are filled, proceed to confirmation page if a plan is chosen
       if (selectedPlan) {
         setCurrentView("confirm");
       } else {
@@ -196,14 +208,18 @@ export default function EmiPage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setIsSavingDetails(false);
-      setError(err.message || "Failed to save verification details to database.");
+      setError(
+        err.message || "Failed to save verification details to database."
+      );
     }
   }
 
-  // Handle final order confirmation
+  // Confirm the EMI order.
   async function handleConfirmOrder() {
     if (!selectedPlan || !userProfile) {
-      setError("Please ensure an EMI plan and verified details are selected.");
+      setError(
+        "Please ensure an EMI plan and your required details are completed."
+      );
       return;
     }
 
@@ -221,9 +237,11 @@ export default function EmiPage() {
       };
 
       const order = await createEmiOrder(orderPayload);
+
       setConfirmedOrder(order);
       setIsConfirmingOrder(false);
       setCurrentView("success");
+
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setIsConfirmingOrder(false);
@@ -231,33 +249,70 @@ export default function EmiPage() {
     }
   }
 
-  // Handle cancel from confirmation page
+  // Cancel confirmation and return to the calculator.
   function handleCancelConfirmation() {
     setCurrentView("calculator");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // Open modal from Navbar
+  // Open My Details from the navbar.
   function handleOpenDetailsModal() {
     if (hasFilledRequiredDetails(userProfile)) {
       setIsDetailsModalOpen(true);
     } else {
-      // If not filled, take user directly to details form to fill it!
       setCurrentView("details");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
 
+  // Navigate to the calculator section.
+  function handleNavigateCalculator() {
+    setError("");
+    setCurrentView("calculator");
+    setPendingScroll("emi-calculator");
+  }
+
+  // Navigate to the How It Works section.
+  function handleNavigateHowItWorks() {
+    if (currentView !== "calculator") {
+      setCurrentView("calculator");
+      setPendingScroll("how-it-works");
+    } else {
+      document
+        .getElementById("how-it-works")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  // Scroll after the calculator view has rendered.
+  useEffect(() => {
+    if (!pendingScroll || currentView !== "calculator") {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      document
+        .getElementById(pendingScroll)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      setPendingScroll("");
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [currentView, pendingScroll]);
+
   return (
     <div className="app-shell">
-      {/* Top Navbar with My Details */}
+      {/* Navbar */}
       <Navbar
         userProfile={userProfile}
         onOpenDetails={handleOpenDetailsModal}
-        onNavigateHome={() => setCurrentView("calculator")}
+        onNavigateHome={handleNavigateCalculator}
+        onNavigateCalculator={handleNavigateCalculator}
+        onNavigateHowItWorks={handleNavigateHowItWorks}
       />
 
-      {/* Slide-over / Modal for My Details */}
+      {/* My Details Modal */}
       <MyDetailsModal
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
@@ -269,14 +324,14 @@ export default function EmiPage() {
       />
 
       <main className="main-content">
-        {/* Error notification banner if any */}
+        {/* Error notification */}
         {error && (
           <div className="status-card error-message" role="alert">
             {error}
           </div>
         )}
 
-        {/* VIEW 1: DETAILS FORM (If user needs to fill KYC & Bank details) */}
+        {/* VIEW 1: DETAILS FORM */}
         {currentView === "details" && (
           <DetailsForm
             initialData={userProfile}
@@ -289,7 +344,7 @@ export default function EmiPage() {
           />
         )}
 
-        {/* VIEW 2: CONFIRMATION PAGE (The new page to confirm or cancel) */}
+        {/* VIEW 2: CONFIRMATION PAGE */}
         {currentView === "confirm" && selectedPlan && (
           <ConfirmationPage
             plan={selectedPlan}
@@ -303,7 +358,7 @@ export default function EmiPage() {
           />
         )}
 
-        {/* VIEW 3: SUCCESS VIEW (After confirming order) */}
+        {/* VIEW 3: SUCCESS PAGE */}
         {currentView === "success" && (
           <EmiSuccessView
             order={confirmedOrder}
@@ -317,9 +372,9 @@ export default function EmiPage() {
           />
         )}
 
-        {/* VIEW 4: CALCULATOR (Original screen, without the green box) */}
+        {/* VIEW 4: EMI CALCULATOR */}
         {currentView === "calculator" && (
-          <>
+          <div id="emi-calculator">
             <div className="page-intro">
               <p className="eyebrow">A MORE FLEXIBLE WAY TO SHOP</p>
 
@@ -335,11 +390,14 @@ export default function EmiPage() {
               </p>
             </div>
 
+            {/* Cart validation */}
             {cartData.error ? (
               <div className="status-card error-message">
                 <h3>Unable to load your cart</h3>
                 <p>{cartData.error}</p>
-                <a href="http://localhost:5173/cart">Return to ShopSphere</a>
+                <a href="http://localhost:5173/cart">
+                  Return to ShopSphere
+                </a>
               </div>
             ) : calculatorProduct ? (
               <>
@@ -377,14 +435,20 @@ export default function EmiPage() {
                             <p className="muted">Size: {item.size}</p>
                           )}
 
-                          <p className="muted">Quantity: {item.quantity}</p>
+                          <p className="muted">
+                            Quantity: {item.quantity}
+                          </p>
 
-                          <p>₹{item.price.toLocaleString("en-IN")} each</p>
+                          <p>
+                            ₹{item.price.toLocaleString("en-IN")} each
+                          </p>
                         </div>
 
                         <strong>
                           ₹
-                          {(item.price * item.quantity).toLocaleString("en-IN")}
+                          {(item.price * item.quantity).toLocaleString(
+                            "en-IN"
+                          )}
                         </strong>
                       </div>
                     ))}
@@ -412,7 +476,7 @@ export default function EmiPage() {
                   </div>
                 </section>
 
-                {/* EMI calculator */}
+                {/* EMI Calculator */}
                 <div className="checkout-layout">
                   <ProductSummary product={calculatorProduct} />
 
@@ -425,13 +489,18 @@ export default function EmiPage() {
             ) : (
               <div className="status-card error-message">
                 <h3>No products selected</h3>
-                <p>Please return to ShopSphere and select Buy with EMI.</p>
-                <a href="http://localhost:5173/cart">Return to ShopSphere</a>
+                <p>
+                  Please return to ShopSphere and select Buy with EMI.
+                </p>
+                <a href="http://localhost:5173/cart">
+                  Return to ShopSphere
+                </a>
               </div>
             )}
-          </>
+          </div>
         )}
 
+        {/* Footer */}
         <footer className="page-footer" id="how-it-works">
           <span>SHOPSPHERE.</span>
           <span>Thoughtful shopping. Flexible planning.</span>
