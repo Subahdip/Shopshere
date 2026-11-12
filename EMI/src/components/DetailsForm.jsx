@@ -9,10 +9,87 @@ import {
   ArrowLeft,
   AlertCircle,
   CheckCircle,
+  Upload,
+  FileText,
+  X,
+  Camera,
+  FolderOpen,
 } from "lucide-react";
+import { getFileUrl } from "../services/api.js";
 
 // Credit scores below this are not eligible for an EMI.
 export const MIN_CREDIT_SCORE = 650;
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const DOC_ACCEPT = "image/jpeg,image/png,image/webp,application/pdf";
+const PHOTO_ACCEPT = "image/jpeg,image/png,image/webp";
+
+export const OTHER_DOC_TYPES = [
+  "Driving Licence",
+  "Passport",
+  "Voter ID",
+  "Utility Bill",
+  "Bank Statement",
+  "Other",
+];
+
+// Reusable "choose file from device" control
+function FileUpload({ id, label, required, accept, file, existingUrl, onChange, error, hint, icon: Icon = Upload }) {
+  const preview = file?.type?.startsWith("image/") ? URL.createObjectURL(file) : "";
+  const hasFile = !!file || !!existingUrl;
+
+  return (
+    <div className={`form-field ${error ? "field-error" : ""}`}>
+      <label htmlFor={id}>
+        {label} {required && "*"}
+      </label>
+      <label className={`file-drop ${hasFile ? "has-file" : ""}`} htmlFor={id}>
+        {preview ? (
+          <img src={preview} alt="" className="file-thumb" onLoad={() => URL.revokeObjectURL(preview)} />
+        ) : (
+          <Icon size={18} />
+        )}
+        <span className="file-name">
+          {file ? file.name : existingUrl ? "File already uploaded — choose to replace" : "Choose file from device"}
+        </span>
+        {file && (
+          <button
+            type="button"
+            className="file-clear"
+            title="Remove file"
+            onClick={(e) => {
+              e.preventDefault();
+              onChange(null);
+            }}
+          >
+            <X size={14} />
+          </button>
+        )}
+      </label>
+      <input
+        id={id}
+        type="file"
+        accept={accept}
+        className="file-input-hidden"
+        onChange={(e) => {
+          onChange(e.target.files?.[0] || null);
+          e.target.value = "";
+        }}
+      />
+      {existingUrl && !file && (
+        <a className="field-hint" href={getFileUrl(existingUrl)} target="_blank" rel="noreferrer">
+          <FileText size={11} /> View uploaded file
+        </a>
+      )}
+      <span className="field-hint">{hint}</span>
+      {error && (
+        <span className="field-error-message">
+          <AlertCircle size={13} /> {error}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default function DetailsForm({
   initialData,
@@ -37,6 +114,20 @@ export default function DetailsForm({
     bankIfsc: "",
     bankName: "",
     creditScore: 750,
+    // Already-uploaded file URLs (from a saved profile)
+    panFile: "",
+    aadharFile: "",
+    verificationPhoto: "",
+    otherDocType: "",
+    otherDocFile: "",
+  });
+
+  // Newly selected File objects (not yet uploaded)
+  const [files, setFiles] = useState({
+    panFile: null,
+    aadharFile: null,
+    verificationPhoto: null,
+    otherDocFile: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -77,6 +168,24 @@ export default function DetailsForm({
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const checkFile = (field, file) => {
+    if (!file) return "";
+    const okTypes = (field === "verificationPhoto" ? PHOTO_ACCEPT : DOC_ACCEPT).split(",");
+    if (!okTypes.includes(file.type)) {
+      return field === "verificationPhoto"
+        ? "Photo must be a JPG, PNG or WEBP image"
+        : "File must be a JPG, PNG, WEBP or PDF";
+    }
+    if (file.size > MAX_FILE_SIZE) return "File must be 5 MB or smaller";
+    return "";
+  };
+
+  const handleFile = (field, file) => {
+    const err = checkFile(field, file);
+    setErrors((prev) => ({ ...prev, [field]: err }));
+    setFiles((prev) => ({ ...prev, [field]: err ? null : file }));
   };
 
   const handleBlur = (field) => {
@@ -196,6 +305,27 @@ export default function DetailsForm({
       }
     });
 
+    const requiredFiles = [
+      ["panFile", "Please upload your PAN card file"],
+      ["aadharFile", "Please upload your Aadhaar card file"],
+      ["verificationPhoto", "Please upload a verification photo"],
+    ];
+    requiredFiles.forEach(([f, msg]) => {
+      if (!files[f] && !formData[f]) {
+        newErrors[f] = msg;
+        isValid = false;
+      }
+    });
+
+    // Other document: type and file must go together
+    if (formData.otherDocType && !files.otherDocFile && !formData.otherDocFile) {
+      newErrors.otherDocFile = "Please upload the file for the selected document";
+      isValid = false;
+    } else if (!formData.otherDocType && files.otherDocFile) {
+      newErrors.otherDocType = "Please select the document type";
+      isValid = false;
+    }
+
     setErrors(newErrors);
     setTouched(
       fieldsToValidate.reduce((acc, f) => ({ ...acc, [f]: true }), {})
@@ -206,7 +336,8 @@ export default function DetailsForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateAll()) {
-      onSave(formData);
+      // File objects override the stored URL strings of the same name
+      onSave({ ...formData, ...Object.fromEntries(Object.entries(files).filter(([, f]) => f)) });
     }
   };
 
@@ -392,7 +523,7 @@ export default function DetailsForm({
             <ShieldCheck size={18} />
             <div>
               <h3>3. Government KYC Verification</h3>
-              <p className="muted">PAN and Aadhaar numbers for instant lender credit authorization</p>
+              <p className="muted">PAN and Aadhaar numbers with document uploads, plus a verification photo</p>
             </div>
           </div>
 
@@ -419,6 +550,18 @@ export default function DetailsForm({
               )}
             </div>
 
+            <FileUpload
+              id="panFile"
+              label="Upload PAN Card"
+              required
+              accept={DOC_ACCEPT}
+              file={files.panFile}
+              existingUrl={formData.panFile}
+              onChange={(f) => handleFile("panFile", f)}
+              error={errors.panFile}
+              hint="JPG, PNG, WEBP or PDF · max 5 MB"
+            />
+
             <div className={`form-field ${errors.aadhar && touched.aadhar ? "field-error" : ""}`}>
               <label htmlFor="aadhar">Aadhaar Card Number *</label>
               <input
@@ -440,6 +583,81 @@ export default function DetailsForm({
                 </span>
               )}
             </div>
+
+            <FileUpload
+              id="aadharFile"
+              label="Upload Aadhaar Card"
+              required
+              accept={DOC_ACCEPT}
+              file={files.aadharFile}
+              existingUrl={formData.aadharFile}
+              onChange={(f) => handleFile("aadharFile", f)}
+              error={errors.aadharFile}
+              hint="JPG, PNG, WEBP or PDF · max 5 MB"
+            />
+          </div>
+
+          {/* Verification photo */}
+          <div className="form-row-grid" style={{ marginTop: 16 }}>
+            <FileUpload
+              id="verificationPhoto"
+              label="Verification Photo"
+              required
+              accept={PHOTO_ACCEPT}
+              file={files.verificationPhoto}
+              existingUrl={formData.verificationPhoto}
+              onChange={(f) => handleFile("verificationPhoto", f)}
+              error={errors.verificationPhoto}
+              hint="A clear, recent photo of your face · JPG, PNG or WEBP · max 5 MB"
+              icon={Camera}
+            />
+          </div>
+
+          {/* Other important document */}
+          <div className="form-section-title" style={{ marginTop: 22 }}>
+            <FolderOpen size={18} />
+            <div>
+              <h3>Other Important Document</h3>
+              <p className="muted">Optional — Driving Licence, Passport or any other supporting ID</p>
+            </div>
+          </div>
+          <div className="form-row-grid">
+            <div className={`form-field ${errors.otherDocType ? "field-error" : ""}`}>
+              <label htmlFor="otherDocType">Document Type</label>
+              <select
+                id="otherDocType"
+                name="otherDocType"
+                value={formData.otherDocType}
+                onChange={(e) => {
+                  handleChange(e);
+                  if (!e.target.value) handleFile("otherDocFile", null);
+                }}
+                className="form-select"
+              >
+                <option value="">Select document type</option>
+                {OTHER_DOC_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+              {errors.otherDocType && (
+                <span className="field-error-message">
+                  <AlertCircle size={13} /> {errors.otherDocType}
+                </span>
+              )}
+            </div>
+
+            <FileUpload
+              id="otherDocFile"
+              label="Upload Document"
+              accept={DOC_ACCEPT}
+              file={files.otherDocFile}
+              existingUrl={formData.otherDocFile}
+              onChange={(f) => handleFile("otherDocFile", f)}
+              error={errors.otherDocFile}
+              hint="JPG, PNG, WEBP or PDF · max 5 MB"
+            />
           </div>
         </div>
 

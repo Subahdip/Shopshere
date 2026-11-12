@@ -1464,7 +1464,80 @@ body {
   color: #dc2626;
   font-weight: 500;
 }
+.form-field select,
+.form-select {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+}
 
+.form-field.field-error select,
+.form-field.field-error .file-drop {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.file-input-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.file-drop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px dashed #94a3b8;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.file-drop:hover {
+  border-color: #3b4cca;
+  background: #eef2ff;
+}
+
+.file-drop.has-file {
+  border-style: solid;
+  border-color: #10b981;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.file-drop .file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-thumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.file-clear {
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px;
+}
 .field-hint {
   font-size: 10px;
   color: #64748b;

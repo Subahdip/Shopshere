@@ -2,6 +2,16 @@ const API_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:5000/api"
 ).replace(/\/+$/, "");
 
+// Server origin (without /api) - used to build links to uploaded files
+const FILE_BASE = API_URL.replace(/\/api$/, "");
+
+export function getFileUrl(path = "") {
+  if (!path) return "";
+  return /^https?:\/\//.test(path) ? path : `${FILE_BASE}${path}`;
+}
+
+const FILE_FIELDS = ["panFile", "aadharFile", "verificationPhoto", "otherDocFile"];
+
 const STORAGE_KEY = "shopsphere_emi_user_profile";
 
 /**
@@ -37,12 +47,20 @@ export async function getProduct(productId) {
  */
 export async function saveEmiProfile(profileData) {
   try {
+    // multipart/form-data so the PAN / Aadhaar / photo / other-document files can be uploaded
+    const body = new FormData();
+    Object.entries(profileData).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      if (value instanceof File) {
+        body.append(key, value);
+      } else if (!FILE_FIELDS.includes(key)) {
+        body.append(key, value); // plain text fields (already-stored file URLs are skipped)
+      }
+    });
+
     const response = await fetch(`${API_URL}/emi/profile`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(profileData),
+      body, // browser sets the multipart Content-Type + boundary
     });
 
     let data;
@@ -61,10 +79,9 @@ export async function saveEmiProfile(profileData) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(savedProfile));
     return savedProfile;
   } catch (err) {
+    // Uploads can't be queued offline, so surface the error to the form instead of faking success
     console.warn("API save warning:", err.message);
-    // Even if offline/server is restarting, cache locally
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profileData));
-    return profileData;
+    throw err;
   }
 }
 
