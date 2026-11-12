@@ -50,7 +50,7 @@ export default function Shop() {
         </label>
         <div className="filter-row">
           <div className="category-filters">
-            {["All", "Women", "Men", "Accessories"].map((c) => (
+            {["All", "Audio", "Mobile", "Laptop", "Accessories"].map((c) => (
               <button
                 key={c}
                 onClick={() => setCategory(c)}

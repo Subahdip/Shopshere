@@ -6,7 +6,12 @@ import {
   ArrowUpRight,
   MoveRight,
   Sparkles,
+  Truck,
+  ShieldCheck,
+  Headphones,
+  Zap,
 } from "lucide-react";
+
 import api from "../services/api";
 import ProductCard from "../components/ProductCard";
 
@@ -26,192 +31,317 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="home-page">
-      {/* Hero */}
-      <section className="home-hero container">
-        <div className="home-hero-copy">
-          <div className="home-edition-label">
-            <span className="home-edition-dot" />
-            THE EVERYDAY EDIT
-            <span className="home-edition-number">NO. 01 / 2026</span>
+    <main className="tech-home">
+      {/* HERO SECTION */}
+      <section className="tech-hero container">
+        <div className="tech-hero-copy">
+          <div className="tech-eyebrow">
+            <span className="tech-live-dot" />
+            THE FUTURE OF SHOPPING
+            <span className="tech-edition">EST. 2026</span>
           </div>
 
-          <h1 className="home-hero-title">
-            Less,
+          <h1 className="tech-hero-title">
+            Technology
             <br />
-            but <em>better.</em>
+            that moves
+            <br />
+            <em>you forward.</em>
           </h1>
 
-          <p className="home-hero-description">
-            Thoughtful pieces. Easy silhouettes. A wardrobe that feels like you
-            — every single day.
+          <p className="tech-hero-description">
+            Discover powerful devices, smarter gadgets and everyday technology.
+            Everything you need to stay connected, productive and ahead of the
+            curve.
           </p>
 
-          <div className="home-hero-actions">
-            <Link to="/shop" className="button button-dark home-primary-cta">
-              Explore the collection
-              <ArrowUpRight size={17} />
+          <div className="tech-hero-actions">
+            <Link to="/shop" className="tech-primary-button">
+              Shop electronics
+              <ArrowUpRight size={19} />
             </Link>
-          </div>
 
-          <div className="home-hero-bottom">
-            <div className="home-hero-index">
-              <span className="home-index-line" />
-              <span>01 — A MORE CONSIDERED WARDROBE</span>
-            </div>
-
-            <a href="#featured" className="home-scroll-link">
-              Discover more
-              <ArrowDown size={15} />
+            <a href="#featured" className="tech-secondary-link">
+              Explore products
+              <ArrowDown size={16} />
             </a>
           </div>
+
+          <div className="tech-hero-meta">
+            <span>01 — DISCOVER WHAT'S NEXT</span>
+            <span>SMARTER TECHNOLOGY. BETTER LIVING.</span>
+          </div>
         </div>
 
-        <div className="home-hero-visual">
-          <div className="home-hero-image">
+        <div className="tech-hero-visual">
+          <div className="tech-hero-image">
             <img
-              src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1300&q=90"
-              alt="Contemporary everyday fashion in a neutral palette"
+              src="https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=1400&q=90"
+              alt="Modern electronics and technology products"
             />
 
-            <div className="home-image-overlay" />
+            <div className="tech-image-gradient" />
 
-            <div className="home-image-topline">
-              <span>SHOPSPHERE STUDIO</span>
-              <Sparkles size={15} strokeWidth={1.4} />
+            <div className="tech-image-top">
+              <span>SHOPSPHERE / TECH</span>
+              <Sparkles size={18} />
             </div>
 
-            <div className="home-image-caption">
-              <span className="home-image-caption-number">01 / 03</span>
-              <div>
-                <p>THE NEW UNIFORM</p>
-                <h2>Everyday, elevated.</h2>
-              </div>
+            <div className="tech-image-content">
+              <span>THE NEXT GENERATION</span>
+              <h2>Upgrade your world.</h2>
+              <p>Innovation starts here.</p>
+            </div>
+
+            <div className="tech-image-counter">
+              <span>01</span>
+              <span className="tech-counter-line" />
+              <span>03</span>
             </div>
           </div>
 
-          <div className="home-vertical-label">STYLE WITH INTENTION — 2026</div>
+          <div className="tech-floating-card">
+            <div className="tech-floating-icon">
+              <Zap size={21} />
+            </div>
+            <div>
+              <strong>Power your everyday</strong>
+              <span>Technology made simple</span>
+            </div>
+          </div>
 
-          <div className="home-image-stamp">
-            <span>LESS</span>
-            <span>NOISE.</span>
-            <span>MORE</span>
-            <span>YOU.</span>
+          <div className="tech-vertical-text">
+            EXPLORE THE POSSIBILITIES — 2026
           </div>
         </div>
       </section>
 
-      {/* Brand strip */}
-      <section className="home-brand-strip">
-        <div className="container home-brand-strip-inner">
-          <span>MADE FOR EVERYDAY</span>
-          <span className="home-strip-divider" />
-          <span>EFFORTLESS SILHOUETTES</span>
-          <span className="home-strip-divider" />
-          <span>YOUR STYLE, YOUR RULES</span>
+      {/* BENEFITS STRIP */}
+      <section className="tech-benefits">
+        <div className="container tech-benefits-grid">
+          <div className="tech-benefit">
+            <Truck size={23} />
+            <div>
+              <strong>Reliable Delivery</strong>
+              <span>Delivered to your doorstep</span>
+            </div>
+          </div>
+
+          <div className="tech-benefit">
+            <ShieldCheck size={23} />
+            <div>
+              <strong>Secure Shopping</strong>
+              <span>A safer shopping experience</span>
+            </div>
+          </div>
+
+          <div className="tech-benefit">
+            <Headphones size={23} />
+            <div>
+              <strong>Customer Support</strong>
+              <span>We're here to help</span>
+            </div>
+          </div>
+
+          <div className="tech-benefit">
+            <Zap size={23} />
+            <div>
+              <strong>Latest Technology</strong>
+              <span>Explore modern innovations</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Featured products */}
-      <section id="featured" className="section container home-featured">
-        <div className="section-heading home-featured-heading">
+      {/* FEATURED PRODUCTS */}
+      <section id="featured" className="tech-featured container">
+        <div className="tech-section-heading">
           <div>
-            <p className="eyebrow">A FEW GOOD THINGS</p>
+            <p className="tech-section-eyebrow">HANDPICKED FOR YOU</p>
             <h2>
-              The everyday
-              <br className="home-mobile-break" /> edit<span>.</span>
+              Technology worth
+              <br />
+              <em>exploring.</em>
             </h2>
-            <p className="home-section-description">
-              Pieces that work harder, pair easier, and stay in rotation.
+            <p className="tech-section-description">
+              Discover some of our featured electronics and find the right
+              technology for your everyday needs.
             </p>
           </div>
 
-          <Link className="home-view-all" to="/shop">
-            <span>View all pieces</span>
-            <span className="home-view-all-icon">
-              <ArrowUpRight size={17} />
+          <Link to="/shop" className="tech-view-all">
+            Browse all products
+            <span>
+              <ArrowUpRight size={19} />
             </span>
           </Link>
         </div>
 
         {error && <p className="notice error">{error}</p>}
 
-        <div className="product-grid home-product-grid">
-          {products.slice(0, 4).map((p, index) => (
-            <div className="home-product-reveal" key={p._id}>
-              <div className="home-product-index">
+        <div className="product-grid tech-product-grid">
+          {products.slice(0, 4).map((product, index) => (
+            <div className="tech-product-item" key={product._id}>
+              <div className="tech-product-label">
                 <span>0{index + 1}</span>
-                <span>THE EDIT</span>
+                <span>FEATURED TECH</span>
               </div>
-              <ProductCard product={p} />
+
+              <ProductCard product={product} />
             </div>
           ))}
 
           {!products.length && !error && (
-            <div className="home-loading">
-              <div className="home-loading-line" />
-              <p>Curating your collection...</p>
+            <div className="tech-loading">
+              <div className="tech-loading-line" />
+              <p>Finding the latest technology for you...</p>
             </div>
           )}
         </div>
 
         {!error && products.length > 0 && (
-          <div className="home-featured-footer">
-            <span>GOOD STYLE. NO COMPLICATIONS.</span>
+          <div className="tech-featured-footer">
+            <span>DISCOVER. COMPARE. UPGRADE.</span>
             <Link to="/shop">
-              Discover your next favourite
-              <MoveRight size={16} />
+              Explore the complete collection
+              <MoveRight size={17} />
             </Link>
           </div>
         )}
       </section>
 
-      {/* Brand story */}
-      <section id="story" className="home-story">
-        <div className="container home-story-layout">
-          <div className="home-story-heading">
-            <p className="eyebrow">THE SHOPSPHERE POINT OF VIEW</p>
-            <span className="home-story-mark">S.</span>
-            <h2>
-              Buy less.
-              <br />
-              <em>Choose well.</em>
-            </h2>
-            <span className="home-story-caption">
-              A wardrobe that makes sense.
-            </span>
+      {/* CATEGORY PROMO */}
+      <section className="tech-category-section">
+        <div className="container">
+          <div className="tech-category-heading">
+            <div>
+              <p className="tech-section-eyebrow">FIND YOUR NEXT UPGRADE</p>
+              <h2>
+                Made for the
+                <br />
+                <em>way you live.</em>
+              </h2>
+            </div>
+
+            <p>
+              From work and entertainment to staying connected, find the devices
+              that fit your world.
+            </p>
           </div>
 
-          <div className="home-story-content">
-            <div className="home-story-image">
+          <div className="tech-category-grid">
+            <Link to="/shop" className="tech-category-card tech-category-large">
               <img
-                src="https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&w=1000&q=85"
-                alt="Minimal contemporary clothing and considered styling"
+                src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=1000&q=85"
+                alt="Laptop and workspace"
                 loading="lazy"
               />
-              <span>THE ART OF EVERYDAY DRESSING</span>
-            </div>
+              <div className="tech-category-overlay" />
+              <div className="tech-category-info">
+                <span>01 / PRODUCTIVITY</span>
+                <h3>Laptops & Computing</h3>
+                <p>Power through every task</p>
+                <ArrowUpRight size={23} />
+              </div>
+            </Link>
 
-            <div className="home-story-copy">
-              <p>
-                We believe getting dressed should feel simple. ShopSphere brings
-                together versatile essentials with considered shapes, easy
-                textures, and the kind of style you reach for again and again.
-              </p>
+            <Link to="/shop" className="tech-category-card">
+              <img
+                src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=85"
+                alt="Modern smartphone"
+                loading="lazy"
+              />
+              <div className="tech-category-overlay" />
+              <div className="tech-category-info">
+                <span>02 / CONNECTIVITY</span>
+                <h3>Smartphones</h3>
+                <p>Stay connected everywhere</p>
+                <ArrowUpRight size={23} />
+              </div>
+            </Link>
 
-              <Link className="home-story-link" to="/shop">
-                <span>Find your everyday</span>
-                <span className="home-story-link-icon">
-                  <ArrowRight size={17} />
-                </span>
-              </Link>
+            <Link to="/shop" className="tech-category-card">
+              <img
+                src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=85"
+                alt="Wireless headphones"
+                loading="lazy"
+              />
+              <div className="tech-category-overlay" />
+              <div className="tech-category-info">
+                <span>03 / ENTERTAINMENT</span>
+                <h3>Audio & Accessories</h3>
+                <p>Experience every detail</p>
+                <ArrowUpRight size={23} />
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* BRAND STORY */}
+      <section className="tech-story">
+        <div className="container tech-story-layout">
+          <div className="tech-story-visual">
+            <img
+              src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1100&q=85"
+              alt="Modern technology and collaborative workspace"
+              loading="lazy"
+            />
+
+            <div className="tech-story-image-label">
+              <span>SHOPSPHERE</span>
+              <span>TECH FOR EVERYDAY LIFE.</span>
             </div>
+          </div>
+
+          <div className="tech-story-content">
+            <p className="tech-section-eyebrow">THE SHOPSPHERE EXPERIENCE</p>
+
+            <span className="tech-story-mark">S.</span>
+
+            <h2>
+              Technology
+              <br />
+              should make
+              <br />
+              life <em>better.</em>
+            </h2>
+
+            <p className="tech-story-description">
+              At ShopSphere, we believe the right technology can transform the
+              way you work, communicate and experience the world. Our goal is to
+              make discovering your next favourite device simple and convenient.
+            </p>
+
+            <Link to="/shop" className="tech-story-button">
+              Discover ShopSphere
+              <span>
+                <ArrowRight size={18} />
+              </span>
+            </Link>
           </div>
         </div>
 
-        <div className="home-story-bottom-label">
-          GOOD THINGS, WORN OFTEN. — SHOPSPHERE
+        <div className="tech-story-bottom">
+          TECHNOLOGY FOR EVERYDAY LIFE. — SHOPSPHERE
         </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="tech-final-cta container">
+        <div>
+          <p className="tech-section-eyebrow">YOUR NEXT UPGRADE STARTS HERE</p>
+          <h2>
+            Ready for what's
+            <br />
+            <em>next?</em>
+          </h2>
+        </div>
+
+        <Link to="/shop" className="tech-final-button">
+          Explore the store
+          <ArrowUpRight size={20} />
+        </Link>
       </section>
     </main>
   );

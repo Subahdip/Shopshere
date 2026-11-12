@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import {
   Package,
   ShoppingBag,
@@ -16,17 +17,26 @@ import {
   Star,
   TrendingUp,
 } from "lucide-react";
+
 import api from "../services/api";
 
 const blank = {
   name: "",
+
   slug: "",
+
   description: "",
-  category: "Women",
+
+  category: "Mobile",
+
   price: "",
+
   image: "",
-  sizes: "XS,S,M,L,XL",
+
+  sizes: "",
+
   stock: "0",
+
   featured: false,
 };
 
@@ -34,21 +44,30 @@ const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
 export default function Admin() {
   const [products, setProducts] = useState([]);
+
   const [orders, setOrders] = useState([]);
+
   const [form, setForm] = useState(blank);
+
   const [editing, setEditing] = useState(null);
+
   const [message, setMessage] = useState("");
+
   const [error, setError] = useState("");
+
   const [saving, setSaving] = useState(false);
 
   async function load() {
     try {
       const [p, o] = await Promise.all([
         api.get("/products"),
+
         api.get("/orders"),
       ]);
-      setProducts(p.data);
-      setOrders(o.data);
+
+      setProducts(Array.isArray(p.data) ? p.data : p.data?.products || []);
+      setOrders(Array.isArray(o.data) ? o.data : o.data?.orders || []);
+
       setError("");
     } catch (err) {
       setError(err.response?.data?.message || "Could not load admin data.");
@@ -61,8 +80,10 @@ export default function Admin() {
 
   function change(e) {
     const { name, value, type, checked } = e.target;
+
     setForm((f) => ({
       ...f,
+
       [name]: type === "checkbox" ? checked : value,
     }));
   }
@@ -70,18 +91,29 @@ export default function Admin() {
   function edit(p) {
     setEditing(p._id);
     setForm({
+      ...blank,
       ...p,
-      sizes: p.sizes.join(","),
-      price: String(p.price),
-      stock: String(p.stock),
+      sizes: Array.isArray(p.sizes) ? p.sizes.join(",") : "",
+      price: String(p.price ?? ""),
+      stock: String(p.stock ?? 0),
+      category: p.category || "Mobile",
+      featured: Boolean(p.featured),
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setError("");
+    setMessage("");
+    document.getElementById("product-form")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }
 
   function cancelEdit() {
     setEditing(null);
+
     setForm(blank);
+
     setError("");
+
     setMessage("");
   }
 
@@ -89,16 +121,40 @@ export default function Admin() {
     e.preventDefault();
     setError("");
     setMessage("");
+
+    if (!form.name.trim()) {
+      setError("Product name is required.");
+      return;
+    }
+    if (!form.category || form.category === "All") {
+      setError("Please select a valid product category.");
+      return;
+    }
+    if (
+      form.price === "" ||
+      !Number.isFinite(Number(form.price)) ||
+      Number(form.price) <= 0
+    ) {
+      setError("Please enter a valid product price greater than zero.");
+      return;
+    }
+    if (
+      form.stock === "" ||
+      !Number.isFinite(Number(form.stock)) ||
+      Number(form.stock) < 0
+    ) {
+      setError("Please enter a valid stock quantity.");
+      return;
+    }
+    if (!form.image.trim() || !form.description.trim()) {
+      setError("Product image URL and description are required.");
+      return;
+    }
+
     setSaving(true);
 
     const payload = {
-      ...form,
-      price: Number(form.price),
-      stock: Number(form.stock),
-      sizes: form.sizes
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
+      name: form.name.trim(),
       slug:
         form.slug.trim() ||
         form.name
@@ -106,6 +162,16 @@ export default function Admin() {
           .trim()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-|-$/g, ""),
+      description: form.description.trim(),
+      category: form.category,
+      price: Number(form.price),
+      image: form.image.trim(),
+      sizes: String(form.sizes || "")
+        .split(",")
+        .map((size) => size.trim())
+        .filter(Boolean),
+      stock: Number(form.stock),
+      featured: Boolean(form.featured),
     };
 
     try {
@@ -120,7 +186,12 @@ export default function Admin() {
       setEditing(null);
       await load();
     } catch (err) {
-      setError(err.response?.data?.message || "Unable to save product.");
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.message ||
+          "Unable to save product.",
+      );
     } finally {
       setSaving(false);
     }
@@ -130,11 +201,14 @@ export default function Admin() {
     if (!window.confirm("Delete this product?")) return;
 
     setError("");
+
     setMessage("");
 
     try {
       await api.delete(`/products/${id}`);
+
       setMessage("Product deleted.");
+
       await load();
     } catch (err) {
       setError(err.response?.data?.message || "Unable to delete product.");
@@ -143,13 +217,16 @@ export default function Admin() {
 
   async function status(id, value) {
     setError("");
+
     setMessage("");
 
     try {
       await api.patch(`/orders/${id}/status`, { status: value });
+
       setOrders((old) =>
         old.map((o) => (o._id === id ? { ...o, status: value } : o)),
       );
+
       setMessage("Order status updated.");
     } catch (err) {
       setError(err.response?.data?.message || "Could not update order status.");
@@ -157,20 +234,24 @@ export default function Admin() {
   }
 
   const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+
   const stockCount = products.reduce((sum, p) => sum + Number(p.stock || 0), 0);
+
   const lowStock = products.filter(
     (p) => Number(p.stock) > 0 && Number(p.stock) <= 5,
   ).length;
+
   const outOfStock = products.filter((p) => Number(p.stock) === 0).length;
 
   return (
     <main className="container page-section admin-page admin-premium">
-      {/* Dashboard header */}
       <header className="admin-hero">
         <div>
           <div className="admin-breadcrumb">
             <span>SHOPSPHERE</span>
+
             <span className="admin-breadcrumb-divider">/</span>
+
             <span>BACK OFFICE</span>
           </div>
 
@@ -190,11 +271,12 @@ export default function Admin() {
         </button>
       </header>
 
-      {/* Notifications */}
       {message && (
         <div className="admin-alert admin-alert-success">
           <span className="admin-alert-dot" />
+
           {message}
+
           <button
             type="button"
             aria-label="Dismiss message"
@@ -208,7 +290,9 @@ export default function Admin() {
       {error && (
         <div className="admin-alert admin-alert-error">
           <span className="admin-alert-dot" />
+
           {error}
+
           <button
             type="button"
             aria-label="Dismiss error"
@@ -219,18 +303,21 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Statistics */}
       <section className="admin-stats-grid">
         <article className="admin-stat-card">
           <div className="admin-stat-top">
             <span>PRODUCTS</span>
+
             <div className="admin-stat-icon">
               <Package size={19} />
             </div>
           </div>
+
           <strong className="admin-stat-value">{products.length}</strong>
+
           <div className="admin-stat-foot">
             <span>Products in catalogue</span>
+
             <ArrowUpRight size={15} />
           </div>
         </article>
@@ -238,13 +325,17 @@ export default function Admin() {
         <article className="admin-stat-card">
           <div className="admin-stat-top">
             <span>ORDERS</span>
+
             <div className="admin-stat-icon">
               <ShoppingBag size={19} />
             </div>
           </div>
+
           <strong className="admin-stat-value">{orders.length}</strong>
+
           <div className="admin-stat-foot">
             <span>Orders recorded</span>
+
             <ArrowUpRight size={15} />
           </div>
         </article>
@@ -252,15 +343,19 @@ export default function Admin() {
         <article className="admin-stat-card admin-stat-highlight">
           <div className="admin-stat-top">
             <span>ORDER VALUE*</span>
+
             <div className="admin-stat-icon">
               <IndianRupee size={19} />
             </div>
           </div>
+
           <strong className="admin-stat-value admin-stat-money">
             {money(revenue)}
           </strong>
+
           <div className="admin-stat-foot">
             <span>Combined order totals</span>
+
             <TrendingUp size={15} />
           </div>
         </article>
@@ -268,11 +363,14 @@ export default function Admin() {
         <article className="admin-stat-card">
           <div className="admin-stat-top">
             <span>ITEMS IN STOCK</span>
+
             <div className="admin-stat-icon">
               <Boxes size={19} />
             </div>
           </div>
+
           <strong className="admin-stat-value">{stockCount}</strong>
+
           <div className="admin-stat-foot">
             <span>
               {outOfStock > 0
@@ -281,21 +379,24 @@ export default function Admin() {
                   ? `${lowStock} products running low`
                   : "Inventory overview"}
             </span>
+
             <ArrowUpRight size={15} />
           </div>
         </article>
       </section>
 
-      {/* Product form */}
       <section className="admin-section admin-panel" id="product-form">
         <div className="admin-panel-heading">
           <div className="admin-panel-title">
             <div className="admin-panel-icon">
               {editing ? <Pencil size={19} /> : <Plus size={20} />}
             </div>
+
             <div>
               <p className="admin-section-kicker">CATALOGUE MANAGEMENT</p>
+
               <h2>{editing ? "Edit product" : "Add a product"}</h2>
+
               <p className="admin-section-description">
                 {editing
                   ? "Update the details of your selected product."
@@ -310,12 +411,14 @@ export default function Admin() {
         <form className="admin-form admin-form-premium" onSubmit={save}>
           <div className="admin-form-subheading">
             <span>01</span>
+
             <h3>Product information</h3>
           </div>
 
           <div className="admin-form-grid">
             <label>
               <span>Product name</span>
+
               <input
                 name="name"
                 required
@@ -327,6 +430,7 @@ export default function Admin() {
 
             <label>
               <span>Slug (unique)</span>
+
               <input
                 name="slug"
                 value={form.slug}
@@ -337,15 +441,21 @@ export default function Admin() {
 
             <label>
               <span>Category</span>
+
               <select name="category" value={form.category} onChange={change}>
-                <option>Women</option>
-                <option>Men</option>
+                <option>Audio</option>
+
+                <option>Mobile</option>
+
+                <option>Laptop</option>
+
                 <option>Accessories</option>
               </select>
             </label>
 
             <label>
               <span>Price (₹)</span>
+
               <input
                 name="price"
                 required
@@ -359,6 +469,7 @@ export default function Admin() {
 
             <label>
               <span>Available stock</span>
+
               <input
                 name="stock"
                 required
@@ -372,19 +483,23 @@ export default function Admin() {
 
             <label>
               <span>Available sizes</span>
+
               <input
                 name="sizes"
                 value={form.sizes}
                 onChange={change}
                 placeholder="XS,S,M,L,XL"
               />
+
               <small>Separate each size with a comma.</small>
             </label>
 
             <label className="admin-field-full">
               <span>Image URL</span>
+
               <div className="admin-input-with-icon">
                 <ImageIcon size={17} />
+
                 <input
                   name="image"
                   required
@@ -398,6 +513,7 @@ export default function Admin() {
 
             <label className="admin-field-full">
               <span>Description</span>
+
               <textarea
                 name="description"
                 required
@@ -416,11 +532,14 @@ export default function Admin() {
               checked={!!form.featured}
               onChange={change}
             />
+
             <span className="admin-featured-check">
               <Star size={16} />
             </span>
+
             <span className="admin-featured-copy">
               <strong>Feature on homepage</strong>
+
               <small>Include this product in the featured collection.</small>
             </span>
           </label>
@@ -438,6 +557,7 @@ export default function Admin() {
               ) : (
                 <Plus size={17} />
               )}
+
               {saving
                 ? "Saving..."
                 : editing
@@ -459,16 +579,18 @@ export default function Admin() {
         </form>
       </section>
 
-      {/* Product inventory */}
       <section className="admin-section admin-panel">
         <div className="admin-panel-heading">
           <div className="admin-panel-title">
             <div className="admin-panel-icon">
               <Package size={19} />
             </div>
+
             <div>
               <p className="admin-section-kicker">YOUR COLLECTION</p>
+
               <h2>Product inventory</h2>
+
               <p className="admin-section-description">
                 Review stock, prices, and catalogue details.
               </p>
@@ -480,7 +602,9 @@ export default function Admin() {
             className="admin-small-action"
             onClick={() =>
               document
+
                 .getElementById("product-form")
+
                 ?.scrollIntoView({ behavior: "smooth" })
             }
           >
@@ -494,9 +618,13 @@ export default function Admin() {
             <thead>
               <tr>
                 <th>PRODUCT</th>
+
                 <th>CATEGORY</th>
+
                 <th>PRICE</th>
+
                 <th>STOCK</th>
+
                 <th>ACTIONS</th>
               </tr>
             </thead>
@@ -507,8 +635,10 @@ export default function Admin() {
                   <td>
                     <div className="table-product admin-table-product">
                       <img src={p.image} alt="" />
+
                       <div>
                         <strong>{p.name}</strong>
+
                         <span>
                           {p.featured ? (
                             <>
@@ -571,6 +701,7 @@ export default function Admin() {
                 <tr>
                   <td colSpan="5" className="admin-table-empty">
                     <Package size={24} />
+
                     <span>No products found in your catalogue.</span>
                   </td>
                 </tr>
@@ -583,20 +714,23 @@ export default function Admin() {
           <span>
             Showing <strong>{products.length}</strong> products
           </span>
+
           <span>SHOPSPHERE / INVENTORY</span>
         </div>
       </section>
 
-      {/* Orders */}
       <section className="admin-section admin-panel">
         <div className="admin-panel-heading">
           <div className="admin-panel-title">
             <div className="admin-panel-icon">
               <ClipboardList size={19} />
             </div>
+
             <div>
               <p className="admin-section-kicker">ORDER MANAGEMENT</p>
+
               <h2>Recent orders</h2>
+
               <p className="admin-section-description">
                 Track customer purchases and update fulfilment status.
               </p>
@@ -611,8 +745,11 @@ export default function Admin() {
             <thead>
               <tr>
                 <th>ORDER / CUSTOMER</th>
+
                 <th>TOTAL</th>
+
                 <th>PAYMENT</th>
+
                 <th>STATUS</th>
               </tr>
             </thead>
@@ -625,9 +762,12 @@ export default function Admin() {
                       <div className="admin-order-avatar">
                         {(o.user?.name || "C").charAt(0).toUpperCase()}
                       </div>
+
                       <div>
                         <strong>#{o._id.slice(-7)}</strong>
+
                         <span>{o.user?.name || "Customer"}</span>
+
                         {o.user?.email && <small>{o.user.email}</small>}
                       </div>
                     </div>
@@ -649,15 +789,20 @@ export default function Admin() {
                         o.status,
                       )
                         .toLowerCase()
+
                         .replace(/[^a-z]+/g, "-")}`}
                       value={o.status}
                       onChange={(e) => status(o._id, e.target.value)}
                       aria-label={`Status for order ${o._id}`}
                     >
                       <option>Placed</option>
+
                       <option>Processing</option>
+
                       <option>Shipped</option>
+
                       <option>Delivered</option>
+
                       <option>Cancelled</option>
                     </select>
                   </td>
@@ -668,6 +813,7 @@ export default function Admin() {
                 <tr>
                   <td colSpan="4" className="admin-table-empty">
                     <ShoppingBag size={24} />
+
                     <span>No orders have been recorded yet.</span>
                   </td>
                 </tr>
@@ -680,6 +826,7 @@ export default function Admin() {
           <span>
             Showing <strong>{orders.length}</strong> orders
           </span>
+
           <span>STATUS CHANGES ARE SAVED TO THE SERVER</span>
         </div>
 
@@ -691,6 +838,7 @@ export default function Admin() {
 
       <footer className="admin-page-footer">
         <span>SHOPSPHERE ADMINISTRATION</span>
+
         <span>Manage thoughtfully. Keep things moving.</span>
       </footer>
     </main>
