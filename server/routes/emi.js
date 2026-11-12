@@ -1,11 +1,74 @@
 import { Router } from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import crypto from "crypto";
+import { fileURLToPath } from "url";
 import EmiProfile from "../models/EmiProfile.js";
 import EmiOrder from "../models/EmiOrder.js";
 
 const router = Router();
 
+// ---- File upload handling (PAN, Aadhaar, verification photo, other document) ----
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const UPLOAD_DIR = path.join(__dirname, "..", "uploads", "emi");
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+const ALLOWED_MIME = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+  "application/pdf": ".pdf",
+};
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+    filename: (_req, file, cb) =>
+      cb(null, `${file.fieldname}-${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ALLOWED_MIME[file.mimetype]}`),
+  }),
+  limits: { fileSize: 5 * 1024 * 1024, files: 4 },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_MIME[file.mimetype]) {
+      const err = new Error("Only JPG, PNG, WEBP or PDF files are allowed.");
+      err.status = 400;
+      return cb(err);
+    }
+    // The verification photo must be an image, not a PDF
+    if (file.fieldname === "verificationPhoto" && file.mimetype === "application/pdf") {
+      const err = new Error("Verification photo must be an image (JPG, PNG or WEBP).");
+      err.status = 400;
+      return cb(err);
+    }
+    cb(null, true);
+  },
+});
+
+const uploadFields = upload.fields([
+  { name: "panFile", maxCount: 1 },
+  { name: "aadharFile", maxCount: 1 },
+  { name: "verificationPhoto", maxCount: 1 },
+  { name: "otherDocFile", maxCount: 1 },
+]);
+
+const OTHER_DOC_TYPES = [
+  "Driving Licence",
+  "Passport",
+  "Voter ID",
+  "Utility Bill",
+  "Bank Statement",
+  "Other",
+];
+
+const removeFiles = (files = {}) => {
+  Object.values(files)
+    .flat()
+    .forEach((f) => fs.unlink(f.path, () => {}));
+};
+
 // Save or update user KYC & financial details
-router.post("/profile", async (req, res, next) => {
+router.post("/profile", uploadFields, async (req, res, next) => {
+  const files = req.files || {};
   try {
     const {
       fullName,
@@ -38,6 +101,7 @@ router.post("/profile", async (req, res, next) => {
       creditScore === undefined ||
       creditScore === null
     ) {
+      removeFiles(files);
       return res.status(400).json({
         message:
           "All personal, KYC, banking, and credit score fields are required.",
@@ -52,6 +116,7 @@ router.post("/profile", async (req, res, next) => {
     const parsedScore = Number(creditScore);
 
     if (parsedScore < 300 || parsedScore > 900) {
+      removeFiles(files);
       return res.status(400).json({
         message: "Credit score must be between 300 and 900.",
       });
@@ -74,6 +139,43 @@ router.post("/profile", async (req, res, next) => {
       isVerified: true,
     };
 
+    // Existing profile (to reuse previously uploaded files / clean up replaced ones)
+    const existing = await EmiProfile.findOne({ email: cleanEmail });
+
+    // PAN, Aadhaar and verification photo are mandatory (new upload or already on file)
+    const fileUrl = (field) =>
+      files[field]?.[0] ? `/uploads/emi/${files[field][0].filename}` : existing?.[field] || "";
+
+    const missing = [
+      ["panFile", "PAN card file"],
+      ["aadharFile", "Aadhaar card file"],
+      ["verificationPhoto", "verification photo"],
+    ]
+      .filter(([f]) => !fileUrl(f))
+      .map(([, label]) => label);
+    if (missing.length) {
+      removeFiles(files);
+      return res.status(400).json({ message: `Please upload: ${missing.join(", ")}.` });
+    }
+
+    profileData.panFile = fileUrl("panFile");
+    profileData.aadharFile = fileUrl("aadharFile");
+    profileData.verificationPhoto = fileUrl("verificationPhoto");
+
+    // Optional "other important document" - type + file go together
+    const otherDocType = String(req.body.otherDocType || "").trim();
+    const otherDocFile = fileUrl("otherDocFile");
+    if (otherDocType && !OTHER_DOC_TYPES.includes(otherDocType)) {
+      removeFiles(files);
+      return res.status(400).json({ message: "Invalid document type selected." });
+    }
+    if (otherDocType && !otherDocFile) {
+      removeFiles(files);
+      return res.status(400).json({ message: "Please upload the file for the selected document type." });
+    }
+    profileData.otherDocType = otherDocFile ? otherDocType : "";
+    profileData.otherDocFile = otherDocType ? otherDocFile : "";
+
     // Find existing profile by email or create new (upsert)
     const profile = await EmiProfile.findOneAndUpdate(
       { email: cleanEmail },
@@ -81,12 +183,21 @@ router.post("/profile", async (req, res, next) => {
       { new: true, upsert: true, runValidators: true }
     );
 
+    // Delete files that were replaced by new uploads
+    ["panFile", "aadharFile", "verificationPhoto", "otherDocFile"].forEach((f) => {
+      const old = existing?.[f];
+      if (old && files[f]?.[0] && old !== profileData[f]) {
+        fs.unlink(path.join(__dirname, "..", old), () => {});
+      }
+    });
+
     res.status(200).json({
       success: true,
       message: "EMI verification details saved successfully.",
       profile,
     });
   } catch (err) {
+    removeFiles(files);
     next(err);
   }
 });
